@@ -1,0 +1,727 @@
+/* Echo-Infinity Project Page — global styles
+ * Adapted from Meta-CoT/index.html v2 inline CSS, with video-card additions.
+ */
+
+/* ============================================
+ * Base
+ * ============================================ */
+html { scroll-behavior: smooth; }
+body { font-family: 'Space Grotesk', sans-serif; }
+section[id] { scroll-margin-top: 3.5rem; }
+
+/* ============================================
+ * Scroll-to-top button
+ * ============================================ */
+#scroll-top-btn {
+    transition: opacity 0.3s ease, transform 0.3s ease, background-color 0.3s ease;
+}
+#scroll-top-btn.visible {
+    opacity: 1;
+    transform: translateY(0);
+    pointer-events: auto;
+}
+
+/* ============================================
+ * Hover float for figures
+ * ============================================ */
+img[data-zoomable] {
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+img[data-zoomable]:hover {
+    transform: translateY(-6px);
+    box-shadow: 0 20px 40px rgba(0, 0, 0, 0.15);
+}
+
+/* ============================================
+ * Showcase wrapper (3D rolled, sticky scroll)
+ * ============================================ */
+#showcase-wrapper {
+    position: relative;
+    min-height: 100vh;
+    overflow: hidden;
+    perspective: 1200px;
+}
+#showcase-hero {
+    position: absolute;
+    top: 0; left: 0; right: 0;
+    z-index: 10;
+    pointer-events: none;
+}
+#showcase-hero * { pointer-events: auto; }
+#showcase-rows {
+    transform-style: preserve-3d;
+    padding-top: 0;
+    will-change: transform, opacity;
+}
+.showcase-row {
+    display: flex;
+    gap: 1.2rem;
+    padding: 0.7rem 2rem;
+    overflow: hidden;                     /* clip the .row-track marquee */
+    align-items: center;
+}
+.showcase-row::-webkit-scrollbar { display: none; }
+
+/* Marquee track — driven by CSS @keyframes (GPU-composited, no rAF throttling) */
+.row-track {
+    display: flex;
+    gap: 1.2rem;
+    flex-shrink: 0;
+    will-change: transform;
+    animation-name: row-marquee;
+    animation-timing-function: linear;
+    animation-iteration-count: infinite;
+    /* duration + direction are set per-row inline by main.js based on track width */
+}
+.showcase-row:hover .row-track {
+    animation-play-state: paused;
+}
+@keyframes row-marquee {
+    from { transform: translate3d(0, 0, 0); }
+    to   { transform: translate3d(-50%, 0, 0); }
+}
+
+/* (row-label removed — each card's corner badge identifies its row) */
+
+/* ============================================
+ * Video card (replaces Meta-CoT triplet-card)
+ * ============================================ */
+.video-card {
+    flex-shrink: 0;
+    display: flex;
+    flex-direction: column;
+    background: white;
+    border-radius: 12px;
+    padding: 8px;
+    box-shadow: 0 2px 12px rgba(0,0,0,0.08);
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+    text-decoration: none;
+    color: inherit;
+    width: 250px;            /* +30% from 192 px */
+    cursor: pointer;
+}
+.video-card:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 10px 24px rgba(0,0,0,0.16);
+}
+.video-card .video-wrap {
+    position: relative;
+    width: 100%;
+    aspect-ratio: 832 / 480;  /* matches source video */
+    background: #000;
+    border-radius: 8px;
+    overflow: hidden;
+}
+.video-card video,
+.video-card .video-wrap > img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+}
+.video-card .badge {
+    position: absolute;
+    bottom: 6px;
+    right: 6px;
+    background: rgba(0, 0, 0, 0.6);
+    color: white;
+    font-size: 0.72rem;
+    padding: 2px 7px;
+    border-radius: 4px;
+    font-weight: 600;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+}
+/* 24h split-card distinct badge ─ tells viewer "click expands into Part 1+2" */
+.video-card.yt-split .badge.badge-split {
+    background: linear-gradient(135deg, #2563eb, #7c3aed);
+    color: white;
+    font-weight: 700;
+}
+
+/* Explanatory banner above a showcase row (e.g. above the 24h row).
+ * Sibling of .showcase-row inside #showcase-rows; not part of marquee. */
+.row-note {
+    max-width: 940px;
+    margin: 0.6rem auto 0.4rem;
+    padding: 0.75rem 1.25rem;
+    text-align: center;
+    font-size: 0.95rem;
+    line-height: 1.5;
+    color: #1f2937;
+    background: rgba(59, 130, 246, 0.10);
+    border-left: 4px solid #3b82f6;
+    border-radius: 8px;
+    font-weight: 500;
+}
+.row-note i { margin-right: 0.35em; color: #3b82f6; }
+html.dark .row-note {
+    color: #cbd5e1;
+    background: rgba(96, 165, 250, 0.14);
+}
+html.dark .row-note i { color: #93c5fd; }
+/* Play overlay (YouTube cards) */
+.video-card .play-overlay {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-direction: column;
+    gap: 6px;
+    background: linear-gradient(0deg, rgba(0,0,0,0.55), rgba(0,0,0,0.15));
+    color: white;
+    font-size: 0.78rem;
+    font-weight: 600;
+    text-shadow: 0 1px 4px rgba(0,0,0,0.6);
+    transition: background 0.25s ease;
+}
+.video-card.yt:hover .play-overlay {
+    background: linear-gradient(0deg, rgba(0,0,0,0.7), rgba(0,0,0,0.25));
+}
+.video-card .play-overlay i {
+    font-size: 1.6rem;
+    color: white;
+    background: rgba(220, 38, 38, 0.95);   /* YouTube red */
+    width: 48px;
+    height: 48px;
+    border-radius: 24px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.4);
+}
+
+/* Prompt under the video */
+.video-card .prompt {
+    font-size: 0.78rem;
+    line-height: 1.35;
+    color: #4b5563;
+    margin-top: 8px;
+    display: -webkit-box;
+    -webkit-line-clamp: 3;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+    cursor: pointer;
+    transition: color 0.2s ease;
+}
+.video-card .prompt:hover { color: #1d4ed8; }
+
+/* 60s multi-prompt expand block (used by both showcase cards and comparison blocks) */
+.video-card .multi-prompt-toggle,
+.cmp-block .multi-prompt-toggle {
+    margin-top: 6px;
+    font-size: 0.68rem;
+    color: #2563eb;
+    cursor: pointer;
+    font-weight: 600;
+    user-select: none;
+}
+.video-card .multi-prompt-toggle:hover,
+.cmp-block .multi-prompt-toggle:hover { text-decoration: underline; }
+.video-card .multi-prompt-list,
+.cmp-block .multi-prompt-list {
+    display: none;
+    margin-top: 6px;
+    padding-left: 0;
+    list-style: none;
+    font-size: 0.65rem;
+    line-height: 1.35;
+    color: #4b5563;
+    max-height: 220px;
+    overflow-y: auto;
+    border-top: 1px solid #e5e7eb;
+    padding-top: 6px;
+}
+.video-card .multi-prompt-list.open,
+.cmp-block .multi-prompt-list.open { display: block; }
+.video-card .multi-prompt-list li,
+.cmp-block .multi-prompt-list li {
+    margin-bottom: 6px;
+}
+.video-card .multi-prompt-list li::before,
+.cmp-block .multi-prompt-list li::before {
+    content: attr(data-segment);
+    display: inline-block;
+    background: #2563eb;
+    color: white;
+    font-size: 0.55rem;
+    padding: 1px 5px;
+    border-radius: 3px;
+    margin-right: 5px;
+    font-weight: 700;
+    letter-spacing: 0.04em;
+}
+/* Comparison blocks have wider prompt area, allow more list rows */
+.cmp-block .multi-prompt-list {
+    font-size: 0.78rem;
+    max-height: 320px;
+    margin-left: 16px;
+    margin-right: 16px;
+}
+.cmp-block .multi-prompt-toggle {
+    display: inline-block;
+    font-size: 0.78rem;
+    margin-left: 16px;
+    margin-top: 8px;
+}
+.cmp-block .multi-prompt-list li::before {
+    font-size: 0.65rem;
+}
+
+/* ============================================
+ * Prompt modal
+ * ============================================ */
+#prompt-modal-overlay {
+    position: fixed;
+    inset: 0;
+    z-index: 200;
+    background: rgba(0,0,0,0.78);
+    display: none;
+    align-items: center;
+    justify-content: center;
+    padding: 24px;
+}
+#prompt-modal-overlay.active { display: flex; }
+
+#prompt-modal-content {
+    display: grid;
+    grid-template-columns: minmax(0, 3fr) minmax(0, 2fr);   /* video : prompt = 3 : 2 */
+    gap: 1.5rem;
+    background: white;
+    border-radius: 16px;
+    padding: 24px;
+    max-width: 1200px;
+    width: 100%;
+    max-height: 88vh;
+    box-shadow: 0 25px 60px rgba(0,0,0,0.3);
+    overflow: hidden;
+    position: relative;
+}
+@media (max-width: 768px) {
+    #prompt-modal-content {
+        grid-template-columns: 1fr;
+        max-height: 92vh;
+        overflow-y: auto;
+    }
+}
+
+#prompt-modal-close {
+    position: absolute;
+    top: 12px;
+    right: 12px;
+    width: 36px;
+    height: 36px;
+    border-radius: 18px;
+    background: #f3f4f6;
+    color: #374151;
+    border: none;
+    cursor: pointer;
+    z-index: 2;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: background 0.2s ease;
+}
+#prompt-modal-close:hover { background: #e5e7eb; }
+
+#prompt-modal-video-wrap {
+    background: #000;
+    border-radius: 10px;
+    overflow: hidden;
+    aspect-ratio: 832 / 480;
+    align-self: center;          /* vertical-center the video when prompt column is taller */
+    width: 100%;
+}
+/* When the modal is rendering multiple stacked parts (24h split), drop the
+ * fixed aspect-ratio + black background so the iframes can size themselves
+ * and the wrapper scrolls if needed. */
+#prompt-modal-video-wrap:has(.modal-part) {
+    background: transparent;
+    aspect-ratio: auto;
+    overflow-y: auto;
+    max-height: 80vh;
+    align-self: stretch;
+}
+#prompt-modal-video-wrap .modal-part {
+    margin-bottom: 0.9rem;
+}
+#prompt-modal-video-wrap .modal-part:last-child { margin-bottom: 0; }
+#prompt-modal-video-wrap .modal-part-label {
+    font-size: 0.7rem;
+    font-weight: 700;
+    color: #6b7280;
+    margin-bottom: 5px;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+}
+#prompt-modal-video-wrap .modal-part iframe {
+    width: 100%;
+    aspect-ratio: 832 / 480;
+    border: 0;
+    border-radius: 8px;
+    background: #000;
+    display: block;
+}
+html.dark #prompt-modal-video-wrap .modal-part-label { color: #9ca3af; }
+
+/* Light styling for the in-modal repeat of the row note */
+#prompt-modal-text .modal-note {
+    font-size: 0.83rem;
+    line-height: 1.5;
+    padding: 0.55rem 0.8rem;
+    background: rgba(59, 130, 246, 0.08);
+    border-left: 3px solid #3b82f6;
+    border-radius: 6px;
+    margin: 0.4rem 0;
+    color: #1e40af;
+}
+html.dark #prompt-modal-text .modal-note {
+    background: rgba(96, 165, 250, 0.15);
+    color: #bfdbfe;
+}
+
+/* In-modal real prompt (24h split cards). Sits above the modal-note. */
+#prompt-modal-text .modal-prompt {
+    font-size: 0.92rem;
+    line-height: 1.55;
+    margin: 0.6rem 0;
+    color: #374151;
+}
+html.dark #prompt-modal-text .modal-prompt { color: #d1d5db; }
+
+#prompt-modal-video {
+    width: 100%;
+    height: 100%;
+    object-fit: contain;
+}
+
+#prompt-modal-text {
+    font-size: 0.95rem;
+    line-height: 1.6;
+    color: #1f2937;
+    overflow-y: auto;
+    max-height: 70vh;
+    padding-right: 4px;
+}
+#prompt-modal-text h4 {
+    font-weight: 700;
+    margin-bottom: 8px;
+    color: #111827;
+}
+#prompt-modal-text .seg {
+    margin-bottom: 12px;
+    padding-left: 12px;
+    border-left: 3px solid #3b82f6;
+}
+#prompt-modal-text .seg .seg-tag {
+    display: inline-block;
+    background: #2563eb;
+    color: white;
+    font-size: 0.65rem;
+    padding: 2px 6px;
+    border-radius: 4px;
+    font-weight: 700;
+    letter-spacing: 0.04em;
+    margin-bottom: 4px;
+}
+
+/* ============================================
+ * Pull-up content overlay
+ * ============================================ */
+#main-content {
+    position: relative;
+    z-index: 20;
+    background: white;
+    will-change: transform;
+    box-shadow: 0 -8px 30px rgba(0, 0, 0, 0.08);
+}
+
+/* ============================================
+ * Fade-in animation
+ * ============================================ */
+.fade-in-up {
+    opacity: 0;
+    transform: translateY(30px);
+    transition: opacity 0.7s ease-out, transform 0.7s ease-out;
+}
+.fade-in-up.visible {
+    opacity: 1;
+    transform: translateY(0);
+}
+
+/* ============================================
+ * Gradient text
+ * ============================================ */
+.gradient-text {
+    background: linear-gradient(135deg, #2563eb, #7c3aed);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+}
+
+/* ============================================
+ * Tables (Quantitative Results)
+ * ============================================ */
+.data-table {
+    border-collapse: collapse;
+    width: 100%;
+    font-size: 0.95rem;
+}
+.data-table thead th {
+    background: linear-gradient(135deg, #2563eb, #4f46e5);
+    color: #ffffff !important;
+    padding: 0.75rem 0.6rem;
+    font-weight: 600;
+    text-align: center;
+    white-space: nowrap;
+    font-size: 1.0rem;
+}
+.data-table tbody td {
+    padding: 0.5rem 0.5rem;
+    text-align: center;
+    border-bottom: 1px solid #e5e7eb;
+    white-space: nowrap;
+    color: #4b5563;
+}
+.data-table tbody tr:hover { background: #f9fafb; }
+.data-table .method-name {
+    text-align: left;
+    font-weight: 500;
+    padding-left: 0.8rem;
+    color: #111827;
+}
+.data-table .row-ours {
+    background: #eff6ff;          /* light blue — matches Meta-CoT */
+    font-weight: 700;
+}
+.data-table .row-ours td {
+    color: #1e40af;
+    border-bottom: none;
+}
+.data-table .best { color: #2563eb; font-weight: 700; }
+.data-table .section-label td {
+    background: #f3f4f6;
+    font-weight: 600;
+    color: #6b7280;
+    font-size: 0.75rem;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    padding: 0.4rem;
+}
+
+/* ============================================
+ * Medium-zoom overlay
+ * ============================================ */
+.medium-zoom-overlay {
+    background: rgba(0, 0, 0, 0.78) !important;
+    z-index: 150 !important;
+}
+.medium-zoom-image--opened { z-index: 151 !important; }
+
+/* ============================================
+ * Animation
+ * ============================================ */
+@keyframes pulse {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.5; }
+}
+.animate-pulse { animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite; }
+
+/* ============================================
+ * DARK MODE
+ * ============================================ */
+html.dark body {
+    background-color: #111827;
+    color: #e5e7eb;
+}
+html.dark .bg-gray-50,
+html.dark section.bg-gray-50 { background-color: #1f2937 !important; }
+html.dark .bg-white { background-color: #111827 !important; }
+html.dark #top-nav {
+    background-color: rgba(17, 24, 39, 0.8);
+    border-bottom-color: #374151;
+}
+html.dark #top-nav a,
+html.dark #top-nav .text-gray-600 { color: #d1d5db; }
+html.dark #top-nav a:hover { color: #93c5fd; }
+
+html.dark .text-gray-900 { color: #f3f4f6 !important; }
+html.dark .text-gray-800 { color: #e5e7eb !important; }
+html.dark .text-gray-700 { color: #d1d5db !important; }
+html.dark .text-gray-600 { color: #9ca3af !important; }
+html.dark .text-gray-500 { color: #9ca3af !important; }
+html.dark .text-gray-400 { color: #6b7280 !important; }
+html.dark .border-gray-200 { border-color: #374151 !important; }
+html.dark .border-gray-300 { border-color: #4b5563 !important; }
+html.dark .bg-gray-100 { background-color: #1f2937 !important; }
+
+/* Dark video card */
+html.dark .video-card {
+    background: #1f2937;
+    box-shadow: 0 2px 12px rgba(0,0,0,0.4);
+}
+html.dark .video-card .prompt { color: #9ca3af; }
+html.dark .video-card .prompt:hover { color: #93c5fd; }
+html.dark .video-card .multi-prompt-list,
+html.dark .cmp-block .multi-prompt-list { color: #9ca3af; border-top-color: #374151; }
+html.dark .video-card .multi-prompt-toggle,
+html.dark .cmp-block .multi-prompt-toggle { color: #93c5fd; }
+
+/* Dark prompt modal */
+html.dark #prompt-modal-overlay { background: rgba(0,0,0,0.88); }
+html.dark #prompt-modal-content {
+    background: #1f2937;
+    box-shadow: 0 25px 60px rgba(0,0,0,0.5);
+}
+html.dark #prompt-modal-text { color: #d1d5db; }
+html.dark #prompt-modal-text h4 { color: #f3f4f6; }
+html.dark #prompt-modal-close { background: #374151; color: #d1d5db; }
+html.dark #prompt-modal-close:hover { background: #4b5563; }
+
+/* Dark main-content */
+html.dark #main-content {
+    background-color: #111827;
+    box-shadow: 0 -8px 30px rgba(0, 0, 0, 0.3);
+}
+
+/* Dark contributions cards */
+html.dark .bg-gray-50.rounded-xl { background-color: #1f2937 !important; }
+html.dark .bg-blue-50 { background-color: #1e3a5f !important; }
+html.dark .text-blue-900 { color: #93c5fd !important; }
+html.dark .text-blue-900\/80 { color: rgba(147, 197, 253, 0.85) !important; }
+html.dark .border-blue-600 { border-color: #3b82f6 !important; }
+
+/* Dark tables */
+html.dark .data-table tbody td {
+    border-bottom-color: #374151;
+    color: #d1d5db;
+}
+html.dark .data-table tbody tr:hover { background: #1f2937; }
+html.dark .data-table .method-name { color: #f3f4f6; }
+html.dark .data-table .row-ours { background: #1e3a5f; }
+html.dark .data-table .row-ours td { color: #93c5fd; }
+html.dark .data-table .section-label td {
+    background: #1f2937;
+    color: #9ca3af;
+}
+html.dark .data-table .best { color: #60a5fa; }
+
+/* Dark scroll-to-top */
+html.dark #scroll-top-btn {
+    background-color: #374151;
+    color: #d1d5db;
+    border-color: #4b5563;
+}
+html.dark #scroll-top-btn:hover { background-color: #4b5563; }
+
+/* Dark figure shadow */
+html.dark img[data-zoomable]:hover {
+    box-shadow: 0 20px 40px rgba(0, 0, 0, 0.4);
+}
+
+html.dark .medium-zoom-overlay { background: rgba(0, 0, 0, 0.88) !important; }
+
+/* Dark white-bg method cards */
+html.dark .bg-white.rounded-xl { background-color: #1f2937 !important; }
+
+/* ============================================
+ * Qualitative Comparison grid (rendered by main.js)
+ * ============================================ */
+.cmp-section-title {
+    font-size: 1.4rem;
+    font-weight: 700;
+    text-align: center;
+    margin: 2.5rem 0 1.5rem;
+    color: #111827;
+    letter-spacing: -0.01em;
+}
+.cmp-block {
+    margin-bottom: 2.5rem;
+}
+.cmp-row {
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 1rem;
+}
+@media (max-width: 768px) {
+    .cmp-row { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+}
+.cmp-cell {
+    background: white;
+    border-radius: 12px;
+    padding: 8px;
+    box-shadow: 0 2px 12px rgba(0,0,0,0.07);
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+}
+.cmp-cell .method-tag {
+    display: inline-block;
+    align-self: flex-start;
+    background: #f3f4f6;
+    color: #374151;
+    font-size: 0.72rem;
+    padding: 3px 10px;
+    border-radius: 999px;
+    font-weight: 600;
+    letter-spacing: 0.02em;
+}
+.cmp-cell .method-tag.method-ours {
+    background: linear-gradient(135deg, #2563eb, #7c3aed);
+    color: white;
+}
+.cmp-cell .video-wrap {
+    position: relative;
+    width: 100%;
+    aspect-ratio: 832 / 480;
+    background: #000;
+    border-radius: 8px;
+    overflow: hidden;
+}
+.cmp-cell video {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+}
+.cmp-prompt {
+    margin-top: 12px;
+    padding: 12px 16px;
+    background: white;
+    border-left: 3px solid #2563eb;
+    border-radius: 6px;
+    font-size: 0.88rem;
+    line-height: 1.55;
+    color: #374151;
+    cursor: pointer;
+    transition: background 0.2s ease;
+}
+.cmp-prompt:hover { background: #f9fafb; }
+
+/* Dark mode for comparison */
+html.dark .cmp-section-title { color: #f3f4f6; }
+html.dark .cmp-cell {
+    background: #1f2937;
+    box-shadow: 0 2px 12px rgba(0,0,0,0.4);
+}
+html.dark .cmp-cell .method-tag {
+    background: #374151;
+    color: #d1d5db;
+}
+html.dark .cmp-prompt {
+    background: #1f2937;
+    color: #d1d5db;
+    border-left-color: #60a5fa;
+}
+html.dark .cmp-prompt:hover { background: #111827; }
+
+/* ============================================
+ * Info banner (under TLDR)
+ * ============================================ */
+html.dark #load-banner {
+    background-color: #1e3a5f !important;
+    border-color: #2563eb !important;
+}
+html.dark #load-banner .text-blue-900 { color: #bfdbfe !important; }
+html.dark #load-banner .text-blue-600 { color: #93c5fd !important; }

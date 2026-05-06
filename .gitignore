@@ -1,0 +1,11 @@
+.DS_Store
+*.log
+node_modules/
+.vscode/
+.idea/
+__pycache__/
+*.pyc
+data/youtube_links.json.bak.*
+
+# defensive: never commit sibling git backup dirs (.git.bak / .git.old / .git.tmp)
+.git.*

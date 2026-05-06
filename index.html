@@ -1,0 +1,469 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="description" content="Echo-Infinity — Real-Time Infinite Video Generation. NeurIPS 2026 anonymous submission.">
+    <meta name="keywords" content="video generation, long video, autoregressive, diffusion transformer, RoPE, memory">
+    <title>Echo-Infinity — Learnable Evolving Memory for Real-Time Infinite Video Generation</title>
+
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    fontFamily: {
+                        'grotesk': ['"Space Grotesk"', 'sans-serif'],
+                        'mono': ['"JetBrains Mono"', 'monospace'],
+                    }
+                }
+            }
+        }
+    </script>
+    <script>
+        if (localStorage.getItem('theme') === 'dark') {
+            document.documentElement.classList.add('dark');
+        }
+    </script>
+
+    <link rel="preconnect" href="https://cdn.tailwindcss.com">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link rel="preconnect" href="https://cdnjs.cloudflare.com">
+    <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300..700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <link rel="stylesheet" href="static/css/style.css">
+</head>
+<body class="bg-white text-gray-900 antialiased">
+
+<!-- Top Navigation Bar -->
+<nav id="top-nav" class="fixed top-0 left-0 right-0 z-50 bg-white/80 backdrop-blur-md border-b border-gray-200 transition-colors duration-300">
+    <div class="max-w-6xl mx-auto px-4 flex items-center justify-between h-14">
+        <a href="#" class="font-bold text-lg gradient-text">Echo-Infinity</a>
+        <div class="flex items-center gap-4 md:gap-6">
+            <a href="#abstract" class="text-sm font-medium text-gray-600 hover:text-blue-600 transition-colors hidden sm:inline">Abstract</a>
+            <a href="#contributions" class="text-sm font-medium text-gray-600 hover:text-blue-600 transition-colors hidden sm:inline">Contributions</a>
+            <a href="#method" class="text-sm font-medium text-gray-600 hover:text-blue-600 transition-colors hidden md:inline">Method</a>
+            <a href="#related" class="text-sm font-medium text-gray-600 hover:text-blue-600 transition-colors hidden md:inline">Related</a>
+            <a href="#results" class="text-sm font-medium text-gray-600 hover:text-blue-600 transition-colors">Results</a>
+            <button id="dark-toggle" class="ml-2 p-2 rounded-full hover:bg-gray-200 transition-colors" aria-label="Toggle dark mode">
+                <i class="fas fa-moon text-gray-600"></i>
+            </button>
+        </div>
+    </div>
+</nav>
+
+<!-- ============================================
+     Showcase + Hero Wrapper
+     ============================================ -->
+<div id="showcase-wrapper">
+    <!-- Hero overlays the showcase at top -->
+    <div id="showcase-hero">
+        <section class="pt-28 pb-14 px-4">
+            <div class="max-w-4xl mx-auto text-center">
+                <!-- Title -->
+                <h1 class="text-5xl md:text-7xl font-bold tracking-tight mb-3 flex flex-col items-center gap-2">
+                    <span class="gradient-text">Echo-Infinity</span>
+                    <span class="text-2xl md:text-3xl font-semibold text-gray-800 tracking-tight leading-snug mt-2">
+                        <span class="gradient-text">Learnable Evolving Memory</span> for Real-Time<br>
+                        <span class="gradient-text">Infinite</span> Video Generation
+                    </span>
+                </h1>
+
+                <!-- Venue Badge -->
+                <span class="inline-block bg-gradient-to-r from-blue-600 to-purple-600 text-white text-sm font-semibold px-4 py-1.5 rounded-full mt-2 mb-2">
+                    NeurIPS 2026 Submission · Paper #8248
+                </span>
+
+                <!-- Authors (anonymous) -->
+                <div class="mt-3 mb-2">
+                    <p class="text-base text-gray-700">Anonymous Author(s) of NeurIPS 8248</p>
+                    <p class="text-gray-500 text-sm mt-1">Affiliations omitted for double-blind review</p>
+                </div>
+            </div>
+        </section>
+    </div>
+
+    <!-- Animated showcase rows (populated by JS from data/prompts.js) -->
+    <div id="showcase-rows"></div>
+</div>
+
+<div id="main-content">
+
+<!-- ============================================
+     TL;DR
+     ============================================ -->
+<section class="pt-16 pb-6 px-4">
+    <div class="max-w-3xl mx-auto text-center fade-in-up">
+        <p class="text-lg md:text-xl text-gray-600 leading-relaxed">
+            <span class="font-semibold text-gray-900">Echo-Infinity</span> demonstrates <strong class="text-gray-900">hour-scale</strong> and <strong class="text-gray-900">real-time</strong> video generation with a <strong class="text-gray-900">learnable memory</strong> to filter, abstract, and compress <strong class="text-gray-900">any-length history at constant cost</strong>, suggesting a practical path toward infinite video generation.
+        </p>
+    </div>
+</section>
+
+<!-- ============================================
+     Loading-time notice (info banner)
+     ============================================ -->
+<section class="px-4 pb-10">
+    <div class="max-w-3xl mx-auto fade-in-up">
+        <div id="load-banner" class="rounded-lg border border-blue-200 bg-blue-50 p-4 flex items-start gap-3">
+            <i class="fas fa-circle-info text-blue-600 mt-0.5 shrink-0"></i>
+            <p class="text-sm text-blue-900 leading-relaxed">
+                <strong>Note:</strong> this page contains a large number of streaming videos.
+                Please allow a few seconds for them to load — the best viewing experience
+                appears once all clips have buffered.
+            </p>
+        </div>
+    </div>
+</section>
+
+<!-- ============================================
+     Abstract
+     ============================================ -->
+<section id="abstract" class="bg-gray-50 py-16 px-4">
+    <div class="max-w-4xl mx-auto fade-in-up">
+        <h2 class="text-3xl font-bold text-center mb-8">Abstract</h2>
+        <p class="text-gray-600 leading-relaxed text-justify">
+            We present <strong class="text-gray-900">Echo-Infinity</strong>, an autoregressive (AR) framework towards real-time infinite video generation that employs a learnable evolving memory to dynamically filter, abstract, and compress any-length history at constant cost. Existing methods mainly curate memory with predefined KV-cache schedules, fixed-ratio heuristic compression, or inference-time RoPE adaptation. These designs inevitably lose historical information and amplify compounding errors due to their limited cache window and ignorance of autoregressive generation noise. Inspired by human memory consolidation, Echo-Infinity replaces handcrafted memory curation with learnable <strong class="text-gray-900">Memory Queries</strong>, which are updated by attention and a gating mechanism when past frames are evicted from the local window. The queries are optimized end-to-end with the video diffusion transformers (DiTs), forming an evolving memory that supports arbitrary compression ratios with constant computation independent of video length. They also act as a generalizable generation prior, improving quality even when only the optimized initial state is used. We further introduce <strong class="text-gray-900">Unified Relative RoPE Recipe</strong>, which anchors the sink frame to start from id 0 and lets the newest frame id grow at most to the DiTs' pretrained maximum temporal RoPE id <em>f</em><sub>max</sub> throughout training and inference, freeing the model from the finite RoPE constraint and closing the train-test RoPE extrapolation gap. In long and short video generation, Echo-Infinity achieves state-of-the-art performance, and, to our knowledge, demonstrates promising <strong class="text-gray-900">24-hour (&gt;1.3M frames) real-time rollouts</strong> for the first time, suggesting a practical path toward infinite video generation.
+        </p>
+    </div>
+</section>
+
+<!-- ============================================
+     Contributions (3 cards)
+     ============================================ -->
+<section id="contributions" class="py-16 px-4">
+    <div class="max-w-6xl mx-auto">
+        <h2 class="text-3xl font-bold text-center mb-4 fade-in-up">Contributions</h2>
+        <p class="text-gray-500 text-center mb-10 max-w-2xl mx-auto fade-in-up">Three core advances that together unlock infinite, real-time video generation.</p>
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-6 fade-in-up">
+            <div class="bg-gray-50 rounded-xl p-6 pl-7 border-l-4 border-blue-600 hover:shadow-lg transition-shadow">
+                <h3 class="text-lg font-bold text-gray-900 mb-2">End-to-End Memory Query</h3>
+                <p class="text-sm text-gray-600 leading-relaxed">We propose <strong class="text-gray-900">Echo-Infinity</strong>, an autoregressive framework towards real-time infinite video generation, replacing handcrafted memory curation with end-to-end trainable <strong class="text-gray-900">Memory Query</strong> that is optimized to filter, abstract, and compress arbitrary-length history at constant computation cost.</p>
+            </div>
+            <div class="bg-gray-50 rounded-xl p-6 pl-7 border-l-4 border-purple-600 hover:shadow-lg transition-shadow">
+                <h3 class="text-lg font-bold text-gray-900 mb-2">Unified Relative RoPE Recipe</h3>
+                <p class="text-sm text-gray-600 leading-relaxed">We employ <strong class="text-gray-900">Unified Relative RoPE Recipe</strong>, which keeps every active temporal RoPE id within the trained range throughout training and inference, avoiding the RoPE train-test extrapolation gap.</p>
+            </div>
+            <div class="bg-gray-50 rounded-xl p-6 pl-7 border-l-4 border-indigo-600 hover:shadow-lg transition-shadow">
+                <h3 class="text-lg font-bold text-gray-900 mb-2">Generalizable & Real-Time</h3>
+                <p class="text-sm text-gray-600 leading-relaxed">We achieve generalizable and state-of-the-art performance on long, short, and interactive video generation benchmarks. We further provide the first demonstration of stable quality over <strong class="text-gray-900">24-hour real-time video generation (&gt;1.3M frames)</strong>, paving the way toward infinite video generation.</p>
+            </div>
+        </div>
+
+        <!-- Stat highlights -->
+        <div class="grid grid-cols-2 md:grid-cols-4 gap-4 mt-10 fade-in-up">
+            <div class="text-center p-4">
+                <div class="text-3xl font-bold gradient-text" data-count-to="24" data-prefix="+" data-suffix=" h">+0 h</div>
+                <div class="text-sm font-medium text-gray-700 mt-1">Continuous Generation</div>
+                <div class="text-xs text-gray-400">first &gt; 24 h, infinite-time</div>
+            </div>
+            <div class="text-center p-4">
+                <div class="text-3xl font-bold gradient-text" data-count-to="1.3" data-suffix=" M">0 M</div>
+                <div class="text-sm font-medium text-gray-700 mt-1">Frames Generated</div>
+                <div class="text-xs text-gray-400">stable visual quality</div>
+            </div>
+            <div class="text-center p-4">
+                <div class="text-3xl font-bold gradient-text" data-count-to="18.5">0</div>
+                <div class="text-sm font-medium text-gray-700 mt-1">FPS on H100</div>
+                <div class="text-xs text-gray-400">real-time streaming</div>
+            </div>
+            <div class="text-center p-4">
+                <div class="text-3xl font-bold gradient-text" data-count-to="10.6" data-prefix="+" data-suffix="%">+0%</div>
+                <div class="text-sm font-medium text-gray-700 mt-1">Throughput Overhead</div>
+                <div class="text-xs text-gray-400">vs. memory-free baseline</div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- ============================================
+     Method
+     ============================================ -->
+<section id="method" class="py-16 px-4 bg-gray-50">
+    <div class="max-w-6xl mx-auto">
+        <h2 class="text-3xl font-bold text-center mb-4 fade-in-up">Method</h2>
+        <p class="text-gray-500 text-center mb-10 max-w-3xl mx-auto fade-in-up">A learnable memory state, updated by attention and gating on every eviction, plus a relative RoPE schedule shared between training and inference.</p>
+
+        <div class="fade-in-up mb-12">
+            <img src="assets/figs/method.webp" data-zoom-src="assets/figs/method.webp"
+                 alt="Echo-Infinity method overview"
+                 class="w-full rounded-2xl shadow-lg hover:shadow-2xl transition-shadow cursor-zoom-in"
+                 data-zoomable decoding="async">
+            <p class="text-center text-sm text-gray-500 mt-4 max-w-4xl mx-auto">
+                <strong>Figure 2.</strong> <strong>Echo-Infinity</strong> introduces an <em>end-to-end trainable <strong>Memory Query</strong></em> that filters, abstracts, and compresses evicted history KV caches through attention and gating, enabling evolving compression of arbitrarily long histories. To avoid temporal RoPE extrapolation during inference or even overflow, Echo-Infinity uses <strong><em>Relative RoPE</em></strong> throughout training and inference, which anchors the sink frame to start from id 0 and lets the newest frame id grow at most to the backbone's pretrained maximum temporal RoPE id <em>f</em><sub>max</sub> (e.g., <em>f</em><sub>max</sub>=20 for Wan2.1-1.3B), closing the RoPE extrapolation gap.
+            </p>
+        </div>
+
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-6 fade-in-up">
+            <div class="bg-white rounded-xl p-6 border-t-4 border-blue-600 shadow-sm">
+                <h3 class="text-lg font-bold mb-2">Three-Tier KV Organization</h3>
+                <p class="text-sm text-gray-600 leading-relaxed">Inspired by the human memory hierarchy, the per-layer cache is split into <em>sink frames</em> (global anchor), a <em>local window</em> (working buffer of recent frames), and a learnable <em>memory query</em> (long-term evolving store).</p>
+            </div>
+            <div class="bg-white rounded-xl p-6 border-t-4 border-purple-600 shadow-sm">
+                <h3 class="text-lg font-bold mb-2">Memory Update on Eviction</h3>
+                <p class="text-sm text-gray-600 leading-relaxed">When the local window slides forward, evicted KVs feed a cross-attention encoder that refreshes the queries, followed by a sigmoid-gated residual that selectively overwrites memory state — jointly optimized end-to-end with the video DiT.</p>
+            </div>
+            <div class="bg-white rounded-xl p-6 border-t-4 border-indigo-600 shadow-sm">
+                <h3 class="text-lg font-bold mb-2">Unified Relative RoPE Schedule</h3>
+                <p class="text-sm text-gray-600 leading-relaxed">Sink stays at id 0; the newest frame grows up to <em>f</em><sub>max</sub>; older frames rotate backward once that bound is reached. Every active id stays inside the trained range [0, <em>f</em><sub>max</sub>], in both training and inference — no overflow, no extrapolation.</p>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- ============================================
+     Related Works (taxonomy + 5 categories)
+     ============================================ -->
+<section id="related" class="py-16 px-4">
+    <div class="max-w-6xl mx-auto">
+        <h2 class="text-3xl font-bold text-center mb-4 fade-in-up">Related Work</h2>
+        <p class="text-gray-500 text-center mb-10 max-w-3xl mx-auto fade-in-up">A taxonomy of memory mechanisms in long video generation. Echo-Infinity is the first end-to-end trainable approach.</p>
+
+        <div class="fade-in-up mb-10">
+            <img src="assets/figs/related_works.webp" data-zoom-src="assets/figs/related_works.webp"
+                 alt="Memory mechanisms taxonomy"
+                 class="w-full rounded-2xl shadow-md hover:shadow-2xl transition-shadow cursor-zoom-in"
+                 data-zoomable decoding="async">
+            <p class="text-center text-sm text-gray-500 mt-4 max-w-3xl mx-auto">
+                <strong>Figure 3.</strong> Memory mechanisms in long video generation. Existing paradigms: (1) Window Truncation, (2) Hand-Crafted KV-cache Management, (3) Heuristic Compression. Echo-Infinity proposes an end-to-end trainable memory query as the evolving long-term memory.
+            </p>
+        </div>
+
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4 fade-in-up">
+            <div class="bg-gray-50 rounded-lg p-5 border-l-2 border-gray-400">
+                <h4 class="font-semibold text-gray-900 mb-1">① Window Truncation</h4>
+                <p class="text-xs text-gray-600 leading-relaxed">Keep a bounded local window plus a few sink frames; discard the rest. Simple but loses history, causing identity drift over long durations.</p>
+            </div>
+            <div class="bg-gray-50 rounded-lg p-5 border-l-2 border-gray-400">
+                <h4 class="font-semibold text-gray-900 mb-1">② Hand-Crafted KV Management</h4>
+                <p class="text-xs text-gray-600 leading-relaxed">Rule-based schedules decide which evicted KVs to retain. Tuned offline, bound by a fixed window, ignore compounding errors within history.</p>
+            </div>
+            <div class="bg-gray-50 rounded-lg p-5 border-l-2 border-gray-400">
+                <h4 class="font-semibold text-gray-900 mb-1">③ Heuristic Compression</h4>
+                <p class="text-xs text-gray-600 leading-relaxed">Compress evicted KVs with a learned encoder or fixed-size state-space. Constrained by hand-set compression ratios; usually need separate proxy training.</p>
+            </div>
+            <div class="rounded-lg p-5 border-l-4 border-blue-600 bg-blue-50 shadow-sm">
+                <h4 class="font-semibold text-blue-900 mb-1"><i class="fas fa-star text-blue-600"></i> ④ Echo-Infinity (Ours)</h4>
+                <p class="text-xs text-blue-900/80 leading-relaxed">First end-to-end trainable memory query, jointly optimized with the DiT, supporting arbitrary compression at constant cost. Unified relative RoPE applied in both training and inference closes the extrapolation gap entirely.</p>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- ============================================
+     Qualitative Comparison (video grid; rendered by main.js)
+     ============================================ -->
+<section id="results" class="bg-gray-50 py-16 px-4">
+    <div class="max-w-7xl mx-auto">
+        <h2 class="text-3xl font-bold text-center mb-4 fade-in-up">Qualitative Comparison</h2>
+        <p class="text-gray-500 text-center mb-10 max-w-3xl mx-auto fade-in-up">Each row shows the same prompt rendered by four methods. Echo-Infinity (Ours) on the left, then LongLive, MemFlow, and Memorize-and-Generate. Click any prompt to enlarge.</p>
+        <div id="comparison-host"></div>
+    </div>
+</section>
+
+<!-- ============================================
+     Quantitative Results
+     ============================================ -->
+<section class="py-16 px-4">
+    <div class="max-w-6xl mx-auto">
+        <h2 class="text-3xl font-bold text-center mb-10 fade-in-up">Quantitative Results</h2>
+
+        <!-- Table 1: Long video 30s + 240s -->
+        <div class="fade-in-up mb-12">
+            <p class="text-center text-sm font-semibold text-gray-700 mb-3">Table 1. Single-Prompt 30s / 240s Long Video Evaluation (VBench-Long / MovieGen)</p>
+            <div class="overflow-x-auto rounded-xl shadow-sm border border-gray-200 bg-white">
+                <table class="data-table">
+                    <thead>
+                        <tr>
+                            <th class="method-name !text-left !pl-4" rowspan="2">Method</th>
+                            <th rowspan="2">#Params</th>
+                            <th rowspan="2">Throughput (FPS) ↑</th>
+                            <th colspan="3">30s ↑</th>
+                            <th colspan="2">240s ↑</th>
+                        </tr>
+                        <tr>
+                            <th>Quality</th>
+                            <th>Semantic</th>
+                            <th>User Pref.</th>
+                            <th>Quality</th>
+                            <th>User Pref.</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td class="method-name">LongLive</td>
+                            <td>1.3B</td><td>20.7</td>
+                            <td>83.59</td><td>80.28</td><td>10.47</td>
+                            <td>79.79</td><td>6.13</td>
+                        </tr>
+                        <tr>
+                            <td class="method-name">MemFlow</td>
+                            <td>1.3B</td><td>18.7</td>
+                            <td>83.35</td><td>80.85</td><td>10.13</td>
+                            <td>79.31</td><td>5.93</td>
+                        </tr>
+                        <tr>
+                            <td class="method-name">Memorize-and-Generate</td>
+                            <td>1.3B</td><td><strong>21.7</strong></td>
+                            <td>83.69</td><td>81.01</td><td>14.73</td>
+                            <td>75.49</td><td>2.13</td>
+                        </tr>
+                        <tr>
+                            <td class="method-name">∞-RoPE</td>
+                            <td>1.3B</td><td>17.0</td>
+                            <td>83.38</td><td>74.67</td><td>5.13</td>
+                            <td>79.99</td><td>14.13</td>
+                        </tr>
+                        <tr class="row-ours">
+                            <td class="method-name">Echo-Infinity (Ours)</td>
+                            <td>1.3B</td><td>18.5</td>
+                            <td class="best">85.61</td>
+                            <td class="best">82.01</td>
+                            <td class="best">59.53</td>
+                            <td class="best">81.23</td>
+                            <td class="best">71.67</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- Table 2: Short video 5s -->
+        <div class="fade-in-up mb-12">
+            <p class="text-center text-sm font-semibold text-gray-700 mb-3">Table 2. Single-Prompt 5s Video Evaluation (VBench)</p>
+            <div class="overflow-x-auto rounded-xl shadow-sm border border-gray-200 bg-white">
+                <table class="data-table">
+                    <thead>
+                        <tr>
+                            <th class="method-name !text-left !pl-4" rowspan="2">Method</th>
+                            <th rowspan="2">#Params</th>
+                            <th rowspan="2">Throughput (FPS) ↑</th>
+                            <th colspan="3">Evaluation scores ↑</th>
+                        </tr>
+                        <tr>
+                            <th>Total</th>
+                            <th>Quality</th>
+                            <th>Semantic</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr class="section-label"><td colspan="6">Diffusion Models</td></tr>
+                        <tr><td class="method-name">LTX-Video</td><td>1.9B</td><td>8.98</td><td>80.00</td><td>82.30</td><td>70.79</td></tr>
+                        <tr><td class="method-name">Wan-2.1</td><td>1.3B</td><td>0.78</td><td>84.26</td><td>85.30</td><td>80.09</td></tr>
+                        <tr class="section-label"><td colspan="6">Autoregressive Models</td></tr>
+                        <tr><td class="method-name">SkyReels-V2</td><td>1.3B</td><td>0.49</td><td>82.67</td><td>84.70</td><td>74.53</td></tr>
+                        <tr><td class="method-name">MAGI-1</td><td>4.5B</td><td>0.19</td><td>79.18</td><td>82.04</td><td>67.74</td></tr>
+                        <tr><td class="method-name">Self Forcing (chunk-wise)</td><td>1.3B</td><td>17.0</td><td>83.08</td><td>83.97</td><td>79.53</td></tr>
+                        <tr><td class="method-name">Causal Forcing (chunk-wise)</td><td>1.3B</td><td>17.0</td><td>83.94</td><td>84.59</td><td>81.35</td></tr>
+                        <tr class="section-label"><td colspan="6">Long Autoregressive Models</td></tr>
+                        <tr><td class="method-name">LongLive</td><td>1.3B</td><td>20.7</td><td>83.29</td><td>84.09</td><td>80.06</td></tr>
+                        <tr><td class="method-name">MemFlow</td><td>1.3B</td><td>18.7</td><td>83.62</td><td>84.52</td><td>80.02</td></tr>
+                        <tr><td class="method-name">Memorize-and-Generate</td><td>1.3B</td><td><strong>21.7</strong></td><td>84.06</td><td>84.84</td><td>80.96</td></tr>
+                        <tr class="row-ours">
+                            <td class="method-name">Echo-Infinity (w/o Memory Update)</td>
+                            <td>1.3B</td><td>18.9</td>
+                            <td>84.57</td>
+                            <td>85.51</td>
+                            <td>80.80</td>
+                        </tr>
+                        <tr class="row-ours">
+                            <td class="method-name">Echo-Infinity (w/ Memory Update)</td>
+                            <td>1.3B</td><td>18.5</td>
+                            <td class="best">85.35</td>
+                            <td class="best">86.32</td>
+                            <td class="best">81.49</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- Table 3: Interactive 60s -->
+        <div class="fade-in-up">
+            <p class="text-center text-sm font-semibold text-gray-700 mb-3">Table 3. Multi-Prompt 60s Interactive Evaluation (MemFlow benchmark)</p>
+            <div class="overflow-x-auto rounded-xl shadow-sm border border-gray-200 bg-white">
+                <table class="data-table">
+                    <thead>
+                        <tr>
+                            <th class="method-name !text-left !pl-4" rowspan="2">Method</th>
+                            <th rowspan="2">Quality Score ↑</th>
+                            <th colspan="6">CLIP Score ↑</th>
+                        </tr>
+                        <tr>
+                            <th>0–10s</th>
+                            <th>10–20s</th>
+                            <th>20–30s</th>
+                            <th>30–40s</th>
+                            <th>40–50s</th>
+                            <th>50–60s</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td class="method-name">LongLive</td>
+                            <td>79.38</td>
+                            <td>34.08</td><td>32.09</td><td><strong>32.03</strong></td><td><strong>31.55</strong></td><td><strong>30.88</strong></td><td>30.49</td>
+                        </tr>
+                        <tr>
+                            <td class="method-name">MemFlow</td>
+                            <td>78.91</td>
+                            <td>33.48</td><td>31.94</td><td>31.95</td><td>30.87</td><td>30.53</td><td>30.23</td>
+                        </tr>
+                        <tr>
+                            <td class="method-name">Memorize-and-Generate</td>
+                            <td>79.15</td>
+                            <td>33.58</td><td>31.43</td><td>31.14</td><td>30.65</td><td>30.48</td><td>30.27</td>
+                        </tr>
+                        <tr>
+                            <td class="method-name">∞-RoPE</td>
+                            <td>79.22</td>
+                            <td>33.15</td><td><strong>32.47</strong></td><td>31.41</td><td>30.46</td><td>30.29</td><td>30.17</td>
+                        </tr>
+                        <tr class="row-ours">
+                            <td class="method-name">Echo-Infinity (Ours)</td>
+                            <td class="best">81.71</td>
+                            <td class="best">34.10</td><td>32.42</td><td>31.99</td><td>31.18</td><td>30.83</td><td class="best">30.74</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- ============================================
+     Footer (anonymous)
+     ============================================ -->
+<footer class="bg-gray-100 py-8 px-4 text-center text-sm text-gray-500">
+    <p>This page is an anonymous submission for <strong>NeurIPS 2026 Paper #8248</strong>.</p>
+    <p class="mt-1 text-gray-400">All identifying information has been removed for double-blind review.</p>
+</footer>
+</div> <!-- /main-content -->
+
+<!-- Scroll-to-top button -->
+<button id="scroll-top-btn" class="fixed bottom-6 right-6 z-50 w-11 h-11 rounded-full bg-white border border-gray-300 shadow-lg flex items-center justify-center text-gray-600 hover:bg-gray-100 hover:text-blue-600 transition-all duration-300 opacity-0 translate-y-4 pointer-events-none" aria-label="Scroll to top">
+    <i class="fas fa-arrow-up"></i>
+</button>
+
+<!-- Prompt modal -->
+<div id="prompt-modal-overlay">
+    <div id="prompt-modal-content">
+        <button id="prompt-modal-close" aria-label="Close"><i class="fas fa-times"></i></button>
+        <div id="prompt-modal-video-wrap">
+            <video id="prompt-modal-video" controls muted playsinline loop></video>
+        </div>
+        <div id="prompt-modal-text"></div>
+    </div>
+</div>
+
+<!-- Scripts -->
+<script src="data/prompts.js"></script>
+<script src="static/js/medium-zoom.min.js" defer></script>
+<script src="static/js/main.js" defer></script>
+
+</body>
+</html>
